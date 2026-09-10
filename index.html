@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SmartOmbor — Zamonaviy ombor, sotuv, mijoz va kassa boshqaruvi ERP tizimi (Uzbek Latin).">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="robots" content="index, follow">
+  
+  <title>SmartOmbor — Ombor va Savdo Boshqaruv Tizimi</title>
+
+  <!-- Favicon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563EB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 17 22 12'/></svg>">
+  
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@0.263.1"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+
+  <!-- jsPDF & jsPDF-AutoTable CDN for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+
+  <!-- ExcelJS CDN for full Styled Excel Export with exact colors and borders -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" defer></script>
+
+  <!-- SheetJS (xlsx) CDN for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+
+  <!-- Custom CSS Component Library -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 flex h-screen overflow-hidden antialiased">
+
+  <!-- Mobile Drawer Backdrop Component -->
+  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 z-30 bg-slate-900/50 backdrop-blur-sm hidden md:hidden"></div>
+
+  <!-- ==================== SIDEBAR COMPONENT ==================== -->
+  <aside id="app-sidebar" aria-label="Asosiy menyu" class="sidebar-container sidebar-transition fixed top-0 left-0 bottom-0 z-40 w-[260px] bg-white border-r border-slate-200 flex flex-col justify-between select-none -translate-x-full md:translate-x-0">
+    <!-- Brand Header -->
+    <div>
+      <div class="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 text-white flex items-center justify-center font-black tracking-wider text-[11px] shadow-md shadow-slate-500/20 shrink-0 border border-slate-500/30 select-none">
+            <span class="tracking-widest uppercase font-extrabold text-[11px] drop-shadow-xs">FAYZ</span>
+          </div>
+          <div class="sidebar-header-title">
+            <span class="text-base font-extrabold text-slate-900 tracking-tight block leading-tight">SmartOmbor</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">Warehouse ERP</span>
+          </div>
+        </div>
+
+        <!-- Collapse Icon Button -->
+        <button onclick="toggleSidebar()" class="hidden md:flex w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 items-center justify-center transition" aria-label="Menuni bukish" title="Menuni bukish">
+          <i id="collapse-icon" data-lucide="chevron-left" class="w-4 h-4"></i>
+        </button>
+
+        <button onclick="toggleMobileSidebar()" class="md:hidden w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center" aria-label="Yopish">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Links List Component -->
+      <nav aria-label="Asosiy navigatsiya" class="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+        <a href="#/dashboard" onclick="navigateTo('dashboard')" data-route="dashboard" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Bosh sahifa</span>
+        </a>
+
+        <a href="#/warehouse" onclick="navigateTo('warehouse')" data-route="warehouse" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="building-2" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Ombor</span>
+        </a>
+
+        <a href="#/products" onclick="navigateTo('products')" data-route="products" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="package" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Tovarlar</span>
+        </a>
+
+        <a href="#/purchases" onclick="navigateTo('purchases')" data-route="purchases" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="arrow-down-left" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Kirim</span>
+        </a>
+
+        <a href="#/outgoing" onclick="navigateTo('outgoing')" data-route="outgoing" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Chiqim</span>
+        </a>
+
+        <a href="#/sales" onclick="navigateTo('sales')" data-route="sales" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="shopping-cart" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Sotuvlar</span>
+        </a>
+
+        <a href="#/customers" onclick="navigateTo('customers')" data-route="customers" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="users" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Mijozlar</span>
+        </a>
+
+        <a href="#/suppliers" onclick="navigateTo('suppliers')" data-route="suppliers" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="truck" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Yetkazib beruvchilar</span>
+        </a>
+
+        <a href="#/cash" onclick="navigateTo('cash')" data-route="cash" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="wallet" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Kassa</span>
+        </a>
+
+        <a href="#/delivery" onclick="navigateTo('delivery')" data-route="delivery" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="map-pin" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Yetkazib berish</span>
+        </a>
+
+        <a href="#/returns" onclick="navigateTo('returns')" data-route="returns" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="rotate-ccw" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Qaytarilganlar (Vozvrat)</span>
+        </a>
+
+        <a href="#/archive" onclick="navigateTo('archive')" data-route="archive" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="archive" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Arxiv</span>
+        </a>
+
+        <a href="#/reports" onclick="navigateTo('reports')" data-route="reports" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Hisobotlar</span>
+        </a>
+
+        <a href="#/users" onclick="navigateTo('users')" data-route="users" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="user-cog" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Foydalanuvchilar (Xodimlar)</span>
+        </a>
+
+        <a href="#/settings" onclick="navigateTo('settings')" data-route="settings" class="nav-link-item nav-item flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span class="sidebar-text truncate">Sozlamalar</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Bottom Profile Component -->
+    <div class="p-3 border-t border-slate-100 bg-slate-50/50">
+      <div onclick="openEditProfileModal()" role="button" tabindex="0" class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:opacity-80 transition w-full" title="Profilni tahrirlash">
+        <img id="sidebar-user-avatar" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CBD5E1'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23CBD5E1\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'" alt="FAYZ avatari" class="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200">
+        <div class="sidebar-user-info min-w-0 flex-1">
+          <h5 id="sidebar-user-name" class="text-xs font-bold text-slate-900 truncate">FAYZ</h5>
+          <p id="sidebar-user-role" class="text-[10px] text-slate-500 truncate">Bosh administrator</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+  <div class="main-content-container content-transition flex-1 flex flex-col min-w-0 md:ml-[260px]">
+    
+    <!-- HEADER COMPONENT -->
+    <header class="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+      <!-- Left: Mobile Toggle & Page Title -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 active:scale-95 transition" aria-label="Menuni ochish">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+
+        <div>
+          <h1 id="page-header-title" class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Bosh sahifa</h1>
+          <p id="page-header-subtitle" class="text-xs text-slate-500 hidden sm:block">SmartOmbor umumiy ko'rsatkichlar tahlili</p>
+        </div>
+      </div>
+
+      <!-- Right: Search Bar, Date Range, Notifications, Profile Dropdown -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Search Bar Component with Global Search Handler -->
+        <div class="relative hidden md:block w-48 lg:w-64">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="globalSearchInput" aria-label="Global qidiruv" oninput="handleGlobalSearch(this.value)" placeholder="Mahsulot, mijoz yoki sotuv qidirish... (Ctrl+K)" class="w-full pl-9 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+          <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-200/60 rounded">⌘K</kbd>
+        </div>
+
+        <!-- Live Real-Time Clock Badge (Replaces Onlayn badge) -->
+        <div id="liveClockBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold font-mono shadow-xs">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-600"></i>
+          <span id="liveClockTime">00:00:00</span>
+        </div>
+
+        <!-- Hidden container for offline sync queue notifications -->
+        <div id="networkStatusBadge" role="status" aria-live="polite" class="hidden"></div>
+
+        <!-- Date Range Picker Component -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-600"></i>
+          <span id="liveHeaderDate">Bugun</span>
+        </div>
+
+        <!-- Notifications Component with Dropdown Panel -->
+        <div class="relative">
+          <button onclick="toggleNotificationDrawer()" aria-expanded="false" aria-haspopup="true" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 transition" aria-label="Bildirishnomalar">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white"></span>
+          </button>
+
+          <!-- Notifications Dropdown Panel -->
+          <div id="notificationPanel" class="dropdown-menu hidden right-0 w-80 p-0 shadow-xl border border-slate-200 rounded-2xl">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <h4 class="text-xs font-bold text-slate-900">Bildirishnomalar</h4>
+              <span class="badge badge-info text-[10px]">3 ta yangi</span>
+            </div>
+            <div class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+              <div class="p-3 hover:bg-slate-50 cursor-pointer">
+                <p class="text-xs font-bold text-slate-900">⚠️ Minimal qoldiq ogohlantirishi</p>
+                <p class="text-[11px] text-slate-500">iPhone 15 Pro (3 dona qoldi)</p>
+              </div>
+              <div class="p-3 hover:bg-slate-50 cursor-pointer">
+                <p class="text-xs font-bold text-slate-900">✅ Yangi sotuv rasmiylashtirildi</p>
+                <p class="text-[11px] text-slate-500">Chek № CHK-8801 (14,850,000 UZS)</p>
+              </div>
+              <div class="p-3 hover:bg-slate-50 cursor-pointer">
+                <p class="text-xs font-bold text-slate-900">📦 Ombor kirimi bajarildi</p>
+                <p class="text-[11px] text-slate-500">Yuk xati № YK-2026-092</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Quick Avatar with Profile Dropdown Menu -->
+        <div class="relative pl-1 sm:pl-2 border-l border-slate-200">
+          <button onclick="toggleUserDropdown()" aria-expanded="false" aria-haspopup="true" class="flex items-center gap-2 focus:outline-none" aria-label="Foydalanuvchi menyusi">
+            <img id="header-user-avatar" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CBD5E1'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23CBD5E1\'><path d=\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\'/></svg>'" alt="Administrator avatari" class="w-8 h-8 rounded-full border border-slate-200 object-cover hover:border-blue-500 transition">
+          </button>
+
+          <!-- User Profile Dropdown Menu -->
+          <div id="userDropdownMenu" class="dropdown-menu hidden right-0 w-56 shadow-xl border border-slate-200 rounded-2xl p-1">
+            <div class="p-3 border-b border-slate-100 bg-slate-50 rounded-t-xl">
+              <p id="header-dropdown-name" class="text-xs font-bold text-slate-900 truncate">FAYZ</p>
+              <p id="header-dropdown-role" class="text-[10px] font-semibold text-blue-600 truncate">Bosh administrator</p>
+            </div>
+            
+            <div class="p-2 border-b border-slate-100 space-y-1">
+              <button onclick="openEditProfileModal(); toggleUserDropdown();" class="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 flex items-center gap-2">
+                <i data-lucide="user-cog" class="w-3.5 h-3.5 text-blue-600"></i>
+                <span>Profilni tahrirlash</span>
+              </button>
+              <button onclick="openCreateEmployeeModal(); toggleUserDropdown();" class="w-full px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>+ Xodim qo'shish (SignUp)</span>
+              </button>
+            </div>
+
+            <button onclick="authService.logout(); toggleUserDropdown();" class="w-full px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2">
+              <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Chiqish
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- DYNAMIC MAIN VIEW CONTAINER -->
+    <main id="main-content" class="flex-1 p-4 sm:p-6 overflow-y-auto bg-slate-50/60">
+      <!-- Dynamic View Injected by app.js -->
+    </main>
+  </div>
+
+  <!-- Container for Modals -->
+  <div id="modal-container"></div>
+
+  <!-- Container for Toast Notifications -->
+  <div id="toast-container"></div>
+
+  <!-- JS Modular Dependencies -->
+  <script src="js/offline-store.js?v=2.6.2"></script>
+  <script src="js/supabase.js?v=2.6.2"></script>
+  <script src="js/charts.js?v=2.6.2"></script>
+  <script src="js/data.js?v=2.6.2"></script>
+  <script src="js/modals.js?v=2.6.2"></script>
+  <script src="js/app.js?v=2.6.2"></script>
+
+</body>
+</html>
