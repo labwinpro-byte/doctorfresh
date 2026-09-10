@@ -2281,18 +2281,44 @@ const distributionService = {
           
           const existingLocalList = demoData.distributionOrders || [];
           const fetchedList = data.map(row => {
-            const rawItems = Array.isArray(row.distribution_order_items) ? row.distribution_order_items : [];
+            let meta = {};
+            if (row.notes) {
+              try {
+                if (typeof row.notes === 'string' && row.notes.startsWith('{')) {
+                  meta = JSON.parse(row.notes);
+                }
+              } catch(e) {}
+            }
+            const rawItems = Array.isArray(row.distribution_order_items) && row.distribution_order_items.length > 0 
+              ? row.distribution_order_items 
+              : (Array.isArray(meta.items) && meta.items.length > 0 ? meta.items : []);
+
             const mappedItems = rawItems.map(it => ({
-              productName: it.product_name || it.productName || 'Tovar',
-              qty: it.quantity || it.qty || 1,
+              productName: it.product_name || it.productName || it.name || 'Tovar',
+              qty: Number(it.quantity || it.qty || 1),
+              quantity: Number(it.quantity || it.qty || 1),
               price: Number(it.unit_price || it.price) || 0,
+              priceType: it.price_type || it.priceType || 'wholesale',
               total: Number(it.total_price || it.total) || 0
             }));
+
             const localMatch = existingLocalList.find(lo => lo.id === row.id || lo.orderNumber === row.order_number);
-            const firstPName = (mappedItems[0] && mappedItems[0].productName) ? mappedItems[0].productName : (localMatch ? (localMatch.productName || (localMatch.items && localMatch.items[0] && localMatch.items[0].productName)) : null);
+            
+            // Extract items from notes if notes contains text like "Sotuv cheki: CHK-xxx" or product names
+            let finalItems = mappedItems;
+            if (finalItems.length === 0 && localMatch && Array.isArray(localMatch.items) && localMatch.items.length > 0) {
+              finalItems = localMatch.items;
+            }
+
+            const firstPName = (finalItems[0] && finalItems[0].productName) ? finalItems[0].productName : (meta.productName || (localMatch ? (localMatch.productName || (localMatch.items && localMatch.items[0] && localMatch.items[0].productName)) : null));
             const finalPName = firstPName || row.product_name || 'Tovar';
-            const fallbackQty = (localMatch && localMatch.items && localMatch.items[0] && localMatch.items[0].qty) ? localMatch.items[0].qty : ((localMatch && localMatch.distQty) ? localMatch.distQty : 1);
-            const finalItems = mappedItems.length > 0 ? mappedItems : (localMatch && localMatch.items && localMatch.items.length > 0 ? localMatch.items : [{ productName: finalPName, qty: fallbackQty, price: fallbackQty > 0 ? Number(row.total_amount) / fallbackQty : Number(row.total_amount), total: Number(row.total_amount) || 0 }]);
+            
+            const totalQtySum = finalItems.reduce((acc, it) => acc + Number(it.qty || it.quantity || 1), 0);
+            const fallbackQty = (localMatch && localMatch.items && localMatch.items[0] && localMatch.items[0].qty) ? localMatch.items[0].qty : ((localMatch && localMatch.distQty) ? localMatch.distQty : (totalQtySum > 0 ? totalQtySum : (meta.distQty || 1)));
+
+            if (finalItems.length === 0) {
+              finalItems = [{ productName: finalPName, qty: fallbackQty, quantity: fallbackQty, price: fallbackQty > 0 ? Number(row.total_amount) / fallbackQty : Number(row.total_amount), total: Number(row.total_amount) || 0 }];
+            }
 
             const isArchived = archivedIds.includes(String(row.id)) || 
                                archivedIds.includes(String(row.order_number)) || 
@@ -2319,8 +2345,9 @@ const distributionService = {
               totalAmount: Number(row.total_amount) || 0,
               paidAmount: Number(row.paid_amount) || 0,
               deliveryDate: row.delivery_date ? new Date(row.delivery_date).toISOString().slice(0, 10) : '',
-              notes: row.notes || '',
+              notes: (meta.rawNotes !== undefined ? meta.rawNotes : row.notes) || '',
               productName: finalPName,
+              distQty: totalQtySum || fallbackQty,
               items: finalItems,
               createdAt: row.created_at ? new Date(row.created_at).toLocaleString('uz-UZ') : (localMatch ? localMatch.createdAt : new Date().toLocaleString('uz-UZ'))
             };
@@ -2376,6 +2403,12 @@ const distributionService = {
       try {
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 10000));
         const syncPromise = (async () => {
+          const metaPayload = {
+            rawNotes: newOrd.notes || '',
+            items: finalItemsList,
+            productName: primaryPName,
+            distQty: targetQty
+          };
           const { data: dbData, error } = await client
             .from('distribution_orders')
             .insert([{
@@ -2386,7 +2419,7 @@ const distributionService = {
               status: 'yangi',
               total_amount: newOrd.totalAmount,
               paid_amount: newOrd.paidAmount,
-              notes: newOrd.notes
+              notes: JSON.stringify(metaPayload)
             }])
             .select()
             .single();

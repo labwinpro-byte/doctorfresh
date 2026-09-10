@@ -2555,9 +2555,11 @@ async function handleSaveSale(e) {
       status: "yangi",
       totalAmount: totalAmount,
       paidAmount: paidAmount,
+      distQty: totalQty,
+      productName: formattedProductName,
       deliveryDate: new Date().toISOString().split('T')[0],
       notes: `Sotuv cheki: ${receiptNo}. To'lov turi: ${paymentType}`,
-      items: items.map(i => ({ productName: i.productName, qty: i.qty, price: i.price, priceType: i.priceType, total: i.total })),
+      items: items.map(i => ({ productName: i.productName, name: i.productName, qty: i.qty, quantity: i.qty, price: i.price, priceType: i.priceType, total: i.total })),
       createdAt: newSale.date
     };
 

@@ -3453,11 +3453,11 @@ function renderDeliveryView() {
                           <i data-lucide="package" class="w-3.5 h-3.5 text-blue-600 shrink-0"></i>
                           ${(ord.items && ord.items.length > 1) ? `
                             <span class="font-bold text-blue-800">${ord.items.length} xil tovar</span>
-                            <span class="text-slate-500 font-medium">(${ord.items.reduce((s, i) => s + (Number(i.qty || i.quantity || 1)), 0)} ta):</span>
+                            <span class="text-slate-500 font-medium">(${ord.items.reduce((s, i) => s + (Number(i.qty || i.quantity || 1)), 0)} dona):</span>
                             <span class="truncate max-w-[180px] text-slate-700 text-[11px] font-normal">${escapeHTML(ord.items.map(i => `${i.productName || i.name} (${i.qty || i.quantity || 1})`).join(', '))}</span>
                           ` : `
                             <span class="truncate max-w-[200px]">${escapeHTML((ord.items && ord.items[0] && (ord.items[0].productName || ord.items[0].name)) ? (ord.items[0].productName || ord.items[0].name) : (ord.productName || 'Tovar'))}</span>
-                            <span class="text-slate-500 font-bold">(${(ord.items && ord.items[0] && (ord.items[0].qty || ord.items[0].quantity)) || ord.distQty || 1} dona)</span>
+                            <span class="text-slate-500 font-bold">(${Number((ord.items && ord.items[0] && (ord.items[0].qty || ord.items[0].quantity)) || ord.distQty || 1)} dona)</span>
                           `}
                         </div>
                         <p class="text-xs text-slate-500 mt-1 leading-snug">${escapeHTML(ord.notes || 'Izohsiz')}</p>
