@@ -2421,20 +2421,33 @@ async function handleSaveSale(e) {
 
     // Deduct stock for all items
     for (const item of items) {
-      item.targetPrd.stock = Math.max(0, item.targetPrd.stock - item.qty);
+      const newStock = Math.max(0, (item.targetPrd.stock || 0) - item.qty);
+      item.targetPrd.stock = newStock;
       const minStk = item.targetPrd.minStock || 5;
       item.targetPrd.status = item.targetPrd.stock <= 0 ? 'Tugagan' : (item.targetPrd.stock <= minStk ? 'Kam qolgan' : 'Mavjud');
       item.targetPrd.statusClass = item.targetPrd.stock <= 0 ? 'badge-danger' : (item.targetPrd.stock <= minStk ? 'badge-warning' : 'badge-success');
+
+      // Update in demoData.products explicitly
+      const prdIdx = (demoData.products || []).findIndex(p => p.id === item.targetPrd.id || p.name === item.targetPrd.name);
+      if (prdIdx !== -1) {
+        demoData.products[prdIdx].stock = newStock;
+        demoData.products[prdIdx].status = item.targetPrd.status;
+        demoData.products[prdIdx].statusClass = item.targetPrd.statusClass;
+      }
 
       if (typeof inventoryService !== 'undefined' && inventoryService.updateStatus) {
         inventoryService.updateStatus(item.targetPrd);
       }
 
-      if (window.productService && item.targetPrd.id && typeof isUUID === 'function' && isUUID(item.targetPrd.id)) {
-        window.productService.update(item.targetPrd.id, {
-          stock: item.targetPrd.stock,
-          warehouseId: item.targetPrd.warehouseId || item.targetPrd.warehouse
-        }).catch(e => console.warn('[Sale Stock Sync Warning]:', e));
+      if (window.productService && item.targetPrd.id) {
+        try {
+          await window.productService.update(item.targetPrd.id, {
+            stock: newStock,
+            warehouseId: item.targetPrd.warehouseId || item.targetPrd.warehouse
+          });
+        } catch(e) {
+          console.warn('[Sale Stock Sync Warning]:', e);
+        }
       }
     }
 
