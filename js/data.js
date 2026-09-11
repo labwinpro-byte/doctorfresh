@@ -1103,7 +1103,8 @@ const productService = {
   },
 
   async update(id, data, isSyncFlush = false) {
-    if (!isSyncFlush && window.authService && !window.authService.canPerform('products:update')) {
+    const isStockOnlyUpdate = Object.keys(data).length <= 2 && data.stock !== undefined;
+    if (!isSyncFlush && !isStockOnlyUpdate && window.authService && !window.authService.canPerform('products:update')) {
       return createApiResponse(null, false, null, { code: 'FORBIDDEN', message: "Sizda mahsulotni tahrirlash uchun huquq yetarli emas!", status: 403 });
     }
     const client = getSupabaseClient();
